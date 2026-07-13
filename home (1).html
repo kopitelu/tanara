@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Menu — Tanara Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--brown:#92400e;--amber:#b45309;--light:#fffbf5;--card:#fff;--border:#e5d8c8;--text:#1c1410;--muted:#7a6652;--green:#059669;--red:#dc2626}
+    body{font-family:'DM Sans',sans-serif;background:var(--light);color:var(--text);min-height:100vh}
+    header{background:var(--brown);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px #92400e44}
+    .header-left{display:flex;align-items:center;gap:10px}
+    .logo{width:32px;height:32px;background:#78350f;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+    .app-name{font-family:'DM Serif Display',serif;font-size:17px}
+    .btn-link{color:#fcd34d;font-size:13px;cursor:pointer;background:none;border:none;text-decoration:none}
+    .user-badge{background:#78350f;padding:3px 10px;border-radius:99px;font-size:12px}
+    main{max-width:480px;margin:0 auto;padding:20px 16px 40px}
+    .greeting{margin-bottom:24px}
+    .greeting h1{font-family:'DM Serif Display',serif;font-size:22px}
+    .greeting p{font-size:13px;color:var(--muted);margin-top:4px}
+    .menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .menu-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px 16px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;gap:10px;transition:all .2s;cursor:pointer}
+    .menu-card:hover{border-color:var(--amber);box-shadow:0 4px 16px rgba(146,64,14,.12);transform:translateY(-2px)}
+    .menu-icon{font-size:28px}
+    .menu-title{font-size:14px;font-weight:700}
+    .menu-desc{font-size:11px;color:var(--muted);line-height:1.4}
+    .section-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:20px 0 10px}
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <div class="logo">🏪</div>
+    <span class="app-name">Tanara Report</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span class="user-badge" id="user-badge">-</span>
+    <button class="btn-link" onclick="doLogout()">Keluar →</button>
+  </div>
+</header>
+
+<main>
+  <div class="greeting">
+    <h1>Halo, <span id="nama-user">-</span> 👋</h1>
+    <p id="outlet-label">-</p>
+  </div>
+
+  <div class="section-label">Operasional Harian</div>
+  <div class="menu-grid">
+    <a href="input.html" class="menu-card">
+      <div class="menu-icon">📋</div>
+      <div class="menu-title">Laporan Shift</div>
+      <div class="menu-desc">Input penjualan & kas akhir shift</div>
+    </a>
+    <a href="serahterima.html" class="menu-card">
+      <div class="menu-icon">🤝</div>
+      <div class="menu-title">Serah Terima</div>
+      <div class="menu-desc">Konfirmasi kas antar shift</div>
+    </a>
+    <a href="setoran.html" class="menu-card">
+      <div class="menu-icon">🏦</div>
+      <div class="menu-title">Setoran</div>
+      <div class="menu-desc">Catat setoran ke rekening</div>
+    </a>
+    <a href="absensi-checkin.html" class="menu-card">
+      <div class="menu-icon">📍</div>
+      <div class="menu-title">Absensi GPS</div>
+      <div class="menu-desc">Check-in & check-out harian</div>
+    </a>
+  </div>
+
+  <div class="section-label" id="section-gudang" style="display:none">Gudang & Inventori</div>
+  <div class="menu-grid" id="menu-gudang" style="display:none">
+    <a href="inventori.html" class="menu-card">
+      <div class="menu-icon">📦</div>
+      <div class="menu-title">Inventori</div>
+      <div class="menu-desc">Stok gudang & pengiriman</div>
+    </a>
+    <a href="konfirmasi-kiriman.html" class="menu-card">
+      <div class="menu-icon">✅</div>
+      <div class="menu-title">Konfirmasi Kiriman</div>
+      <div class="menu-desc">Terima barang dari gudang</div>
+    </a>
+  </div>
+</main>
+
+<script type="module">
+  import { Auth, OutletManager } from './js/auth.js';
+
+  const user = Auth.requireAuth();
+  if (!user) throw new Error();
+
+  document.getElementById('user-badge').textContent = user.nama;
+  document.getElementById('nama-user').textContent = user.nama;
+  window.doLogout = () => Auth.logout();
+
+  const outletMap = await OutletManager.getNamesMap();
+  const outletNama = outletMap[user.selectedOutlet] || user.selectedOutlet || '-';
+  document.getElementById('outlet-label').textContent = `📍 ${outletNama}`;
+
+  // Tampilkan menu gudang kalau punya akses
+  if (user.role === 'owner' || user.role === 'gudang' || user.aksesGudang) {
+    document.getElementById('section-gudang').style.display = 'block';
+    document.getElementById('menu-gudang').style.display = 'grid';
+  }
+</script>
+</body>
+</html>

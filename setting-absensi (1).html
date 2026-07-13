@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Setting Absensi — Tanara Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--brown:#92400e;--amber:#b45309;--light:#fffbf5;--card:#fff;--border:#e5d8c8;--text:#1c1410;--muted:#7a6652;--shadow:rgba(123,63,0,0.10)}
+    body{font-family:'DM Sans',sans-serif;background:var(--light);color:var(--text);min-height:100vh}
+    nav{background:var(--brown);color:#fff;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,0.18)}
+    .nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem}
+    .nav-links{display:flex;align-items:center;gap:14px;font-size:0.88rem}
+    .nav-links a{color:#ffe8cc;text-decoration:none}
+    .nav-role{background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:20px;font-size:0.8rem;font-weight:600}
+    .btn-keluar{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:0.82rem}
+    main{max-width:860px;margin:0 auto;padding:28px 16px 60px}
+    .page-header{margin-bottom:28px}
+    .page-header h1{font-size:1.45rem;display:flex;align-items:center;gap:8px}
+    .page-header p{color:var(--muted);font-size:0.9rem;margin-top:4px}
+    .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:22px 20px;margin-bottom:20px;box-shadow:0 2px 10px var(--shadow)}
+    .card-title{font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--brown);display:flex;align-items:center;gap:6px;margin-bottom:4px}
+    .card-sub{font-size:0.83rem;color:var(--muted);margin-bottom:18px}
+    .tetap-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    @media(max-width:500px){.tetap-grid{grid-template-columns:1fr}}
+    .outlet-box{background:var(--light);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+    .outlet-box label{display:block;font-size:0.82rem;font-weight:600;color:#5C2D00;margin-bottom:10px}
+    .shift-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .shift-badge{font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;width:52px;text-align:center;flex-shrink:0}
+    .badge-pagi{background:#FFF3CD;color:#856404}
+    .badge-sore{background:#CCE5FF;color:#004085}
+    input[type="time"]{border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-size:0.9rem;color:var(--text);background:#fff;width:110px;cursor:pointer}
+    input[type="time"]:focus{outline:none;border-color:#A0522D;box-shadow:0 0 0 3px rgba(123,63,0,0.10)}
+    .info-box{background:#FFF8F0;border:1px solid #F5CBA7;border-radius:10px;padding:14px 16px;font-size:0.84rem;color:var(--muted);line-height:1.6}
+    .info-box strong{color:var(--text)}
+    .btn-save{display:block;width:100%;background:var(--brown);color:#fff;border:none;border-radius:10px;padding:14px;font-size:1rem;font-weight:700;cursor:pointer;transition:background .2s,transform .1s;margin-top:8px}
+    .btn-save:hover{background:#5C2D00}
+    .btn-save:active{transform:scale(.98)}
+    .btn-save:disabled{background:#C4A882;cursor:not-allowed}
+    #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#2C1A0E;color:#fff;padding:12px 24px;border-radius:30px;font-size:0.9rem;font-weight:600;transition:transform .3s ease;z-index:999;pointer-events:none}
+    #toast.show{transform:translateX(-50%) translateY(0)}
+    .loading-text{text-align:center;color:var(--muted);padding:20px 0;font-size:0.9rem}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">🏪 Tanara Report</div>
+  <div class="nav-links">
+    <span class="nav-role" id="navRole">Owner</span>
+    <a href="dashboard.html">← Dashboard</a>
+    <button class="btn-keluar" onclick="keluar()">Keluar →</button>
+  </div>
+</nav>
+<main>
+  <div class="page-header">
+    <h1>⚙️ Setting Absensi</h1>
+    <p>Atur jam batas masuk per shift per outlet. Pegawai yang check-in setelah jam ini dihitung terlambat.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">📍 Outlet</div>
+    <div class="card-sub">Jam batas masuk berlaku sama setiap hari</div>
+    <div class="tetap-grid" id="tetapGrid">
+      <div class="loading-text">Memuat...</div>
+    </div>
+  </div>
+  <div class="info-box" style="margin-bottom:20px">
+    <strong>📌 Info Radius Toleransi GPS</strong><br>
+    Radius toleransi: <strong>100 meter</strong> dari koordinat outlet.<br>
+    Pegawai yang check-in di luar radius akan mendapat warning tapi tetap bisa absen.
+  </div>
+  <button class="btn-save" id="btnSave" onclick="simpanSetting()">💾 Simpan Setting</button>
+</main>
+<div id="toast"></div>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCKbePw9GnSwmsPhdpHHk9zfbOj5qZRqsM",
+    authDomain: "tanara-report.firebaseapp.com",
+    projectId: "tanara-report",
+    storageBucket: "tanara-report.firebasestorage.app",
+    messagingSenderId: "365522383367",
+    appId: "1:365522383367:web:8cb67f1104f9d58eff70a2"
+  };
+  const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+  const db  = getFirestore(app);
+
+  const SHIFTS = ['Pagi','Sore'];
+
+  // Tanara: semua outlet tetap (jam sama tiap hari)
+  const OUTLET_TETAP = [
+    { id: 'outlet1', nama: 'Tanara Tunjungan Plaza' },
+  ];
+
+  // Cek auth
+  const user = JSON.parse(localStorage.getItem('tanara_session') || 'null');
+  if (!user) { window.location.href = 'index.html'; }
+  if (user && user.role !== 'owner') { window.location.href = 'home.html'; }
+  document.getElementById('navRole').textContent = user ? (user.role.charAt(0).toUpperCase()+user.role.slice(1)) : 'Owner';
+
+  let savedData = {};
+
+  async function loadSetting() {
+    try {
+      const snap = await getDoc(doc(db,'setting_absensi','jam_masuk'));
+      if (snap.exists()) savedData = snap.data();
+    } catch(e){console.error(e);}
+    renderTetap();
+  }
+
+  function renderTetap() {
+    const grid = document.getElementById('tetapGrid');
+    grid.innerHTML = '';
+    OUTLET_TETAP.forEach(outlet => {
+      const box = document.createElement('div');
+      box.className = 'outlet-box';
+      let html = `<label>📍 ${outlet.nama}</label>`;
+      SHIFTS.forEach(shift => {
+        const key   = `${outlet.id}_${shift.toLowerCase()}`;
+        const saved = savedData[key] || '';
+        const badgeClass = shift === 'Pagi' ? 'badge-pagi' : 'badge-sore';
+        html += `<div class="shift-row"><span class="shift-badge ${badgeClass}">${shift}</span><input type="time" id="${key}" value="${saved}"/></div>`;
+      });
+      box.innerHTML = html;
+      grid.appendChild(box);
+    });
+  }
+
+  window.simpanSetting = async function() {
+    const btn = document.getElementById('btnSave');
+    btn.disabled = true; btn.textContent = '⏳ Menyimpan...';
+    const data = {};
+    OUTLET_TETAP.forEach(outlet => {
+      SHIFTS.forEach(shift => {
+        const key = `${outlet.id}_${shift.toLowerCase()}`;
+        const el  = document.getElementById(key);
+        if (el) data[key] = el.value;
+      });
+    });
+    try {
+      await setDoc(doc(db,'setting_absensi','jam_masuk'), data);
+      showToast('✅ Setting berhasil disimpan!');
+    } catch(e){ showToast('❌ Gagal menyimpan.'); }
+    btn.disabled = false; btn.textContent = '💾 Simpan Setting';
+  };
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  window.keluar = function() {
+    localStorage.removeItem('tanara_session'); window.location.href = 'index.html';
+  };
+
+  loadSetting();
+</script>
+</body>
+</html>

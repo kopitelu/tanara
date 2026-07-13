@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tanara Report — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--brown:#92400e;--amber:#b45309;--light:#fffbf5;--card:#fff;--border:#e5d8c8;--text:#1c1410;--muted:#7a6652;--green:#059669;--red:#dc2626}
+    body{font-family:'DM Sans',sans-serif;background:var(--light);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
+    .login-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px 28px;width:100%;max-width:380px;box-shadow:0 4px 24px rgba(146,64,14,.10)}
+    .brand{text-align:center;margin-bottom:28px}
+    .brand-icon{width:56px;height:56px;background:var(--brown);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px}
+    .brand-name{font-family:'DM Serif Display',serif;font-size:22px;color:var(--text)}
+    .brand-sub{font-size:12px;color:var(--muted);margin-top:3px}
+    .form-group{margin-bottom:14px}
+    .form-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px}
+    .form-group input,.form-group select{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 13px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fafaf8;outline:none;transition:border-color .2s}
+    .form-group input:focus,.form-group select:focus{border-color:var(--amber);background:#fff}
+    .btn-login{width:100%;background:var(--brown);color:#fff;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:6px;transition:background .2s}
+    .btn-login:hover{background:var(--amber)}
+    .btn-login:disabled{background:#d1b89a;cursor:not-allowed}
+    .msg-error{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 13px;font-size:13px;color:var(--red);margin-bottom:12px;display:none}
+    .divider{text-align:center;font-size:11px;color:var(--muted);margin:20px 0 0;padding-top:16px;border-top:1px solid var(--border)}
+  </style>
+</head>
+<body>
+<div class="login-box">
+  <div class="brand">
+    <div class="brand-icon">🏪</div>
+    <div class="brand-name">Tanara Report</div>
+    <div class="brand-sub">Sistem Laporan Operasional</div>
+  </div>
+
+  <div class="msg-error" id="msg-error"></div>
+
+  <div class="form-group">
+    <label>Username</label>
+    <input type="text" id="username" placeholder="Masukkan username" autocomplete="username"/>
+  </div>
+  <div class="form-group">
+    <label>Password</label>
+    <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password"/>
+  </div>
+  <div class="form-group" id="outlet-group">
+    <label>Outlet</label>
+    <select id="outlet">
+      <option value="">-- Memuat outlet... --</option>
+    </select>
+  </div>
+
+  <button class="btn-login" id="btn-login">Masuk</button>
+
+  <div class="divider">Tanara Tunjungan Plaza · Surabaya</div>
+</div>
+
+<script type="module">
+  import { Auth, OutletManager } from './js/auth.js';
+
+  // Redirect kalau sudah login
+  const existing = Auth.getUser();
+  if (existing) {
+    window.location.href = existing.role === 'owner' ? 'dashboard.html' : 'home.html';
+  }
+
+  // Load outlets
+  const outlets = await OutletManager.getAll();
+  const outletSel = document.getElementById('outlet');
+  outletSel.innerHTML = '<option value="none">-- Pilih Outlet --</option>';
+  outlets.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.id; opt.textContent = o.nama;
+    outletSel.appendChild(opt);
+  });
+  if (outlets.length === 1) {
+    outletSel.value = outlets[0].id;
+    outletSel.disabled = true;
+  }
+
+  // Sembunyikan outlet untuk owner
+  const usernameEl = document.getElementById('username');
+  const outletGroup = document.getElementById('outlet-group');
+  usernameEl.addEventListener('input', () => {
+    outletGroup.style.display = usernameEl.value.trim() === 'owner' ? 'none' : 'block';
+  });
+
+  // Login
+  const btnLogin = document.getElementById('btn-login');
+  const msgError = document.getElementById('msg-error');
+
+  async function doLogin() {
+    const username = usernameEl.value.trim();
+    const password = document.getElementById('password').value;
+    const outlet   = outletSel.value;
+
+    if (!username || !password) { showError('Username dan password wajib diisi.'); return; }
+    if (username !== 'owner' && !outlet) { showError('Pilih outlet terlebih dahulu.'); return; }
+
+    btnLogin.disabled = true; btnLogin.textContent = '⏳ Masuk...';
+    try {
+      const user = await Auth.login(username, password, outlet === 'none' ? null : outlet);
+      if (!user) { showError('Username atau password salah.'); return; }
+      window.location.href = user.role === 'owner' ? 'dashboard.html' : 'home.html';
+    } catch(e) {
+      showError(e.message || 'Login gagal.');
+    } finally {
+      btnLogin.disabled = false; btnLogin.textContent = 'Masuk';
+    }
+  }
+
+  btnLogin.addEventListener('click', doLogin);
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+  function showError(msg) {
+    msgError.textContent = msg; msgError.style.display = 'block';
+    setTimeout(() => msgError.style.display = 'none', 4000);
+  }
+</script>
+</body>
+</html>

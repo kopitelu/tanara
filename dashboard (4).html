@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — Tanara Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--brown:#92400e;--amber:#b45309;--light:#fffbf5;--card:#fff;--border:#e5d8c8;--text:#1c1410;--muted:#7a6652;--green:#059669;--red:#dc2626;--blue:#2563eb;--orange:#ea580c}
+    body{font-family:'DM Sans',sans-serif;background:var(--light);color:var(--text);min-height:100vh}
+    header{background:var(--brown);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px #92400e44}
+    .header-left{display:flex;align-items:center;gap:10px}
+    .logo{width:32px;height:32px;background:#78350f;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+    .app-name{font-family:'DM Serif Display',serif;font-size:17px}
+    .btn-link{color:#fcd34d;font-size:13px;cursor:pointer;background:none;border:none;text-decoration:none}
+    .user-badge{background:#78350f;padding:3px 10px;border-radius:99px;font-size:12px}
+    main{max-width:960px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px;padding-bottom:40px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px}
+    .card-title{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px}
+    /* Outlet tabs */
+    .outlet-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+    .outlet-tab{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .2s}
+    .outlet-tab.active{background:var(--brown);color:#fff;border-color:var(--brown)}
+    /* Filter */
+    .filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:4px}
+    .filter-btn{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .2s}
+    .filter-btn.active{background:var(--brown);color:#fff;border-color:var(--brown)}
+    /* Stats */
+    .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    @media(max-width:600px){.stat-grid{grid-template-columns:1fr 1fr}}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;border-left:4px solid}
+    .stat-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+    .stat-value{font-family:'DM Serif Display',serif;font-size:22px}
+    /* Kas status */
+    .kas-card{border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+    .kas-card.ok{border-color:#6ee7b7;background:#f0fdf4}
+    .kas-card.warn{border-color:#fde68a;background:#fffbeb}
+    .kas-card.error{border-color:#fecaca;background:#fef2f2}
+    .kas-outlet{font-size:14px;font-weight:600}
+    .kas-meta{font-size:11px;color:var(--muted);margin-top:2px}
+    .kas-value{font-family:'DM Serif Display',serif;font-size:20px;color:var(--green);text-align:right}
+    /* Laporan list */
+    .laporan-item{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .laporan-item:last-child{border-bottom:none}
+    .empty-state{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+    .badge-shift{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px}
+    .badge-pagi{background:#fef3c7;color:#92400e}
+    .badge-sore{background:#dbeafe;color:#1e40af}
+    .badge-middle{background:#f3e8ff;color:#7e22ce}
+    /* Setoran */
+    .setoran-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+    .setoran-item:last-child{border-bottom:none}
+    .badge-diterima{background:#d1fae5;color:#065f46;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;display:inline-block}
+    .badge-belum{background:#fef3c7;color:#92400e;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;display:inline-block}
+    /* Custom date */
+    input[type="date"]{border:1.5px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fafaf8;outline:none}
+    input[type="date"]:focus{border-color:var(--amber)}
+    .btn-refresh{background:var(--light);border:1.5px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+    .btn-refresh:hover{border-color:var(--amber);color:var(--amber)}
+  </style>
+</head>
+<body>
+<header>
+  <div class="header-left">
+    <div class="logo">🏪</div>
+    <span class="app-name">Tanara Report</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span class="user-badge" id="user-badge">Owner</span>
+    <a href="setting-absensi.html" class="btn-link">⚙️ Setting</a>
+    <button class="btn-link" onclick="doLogout()">Keluar →</button>
+  </div>
+</header>
+
+<main>
+  <!-- Filter waktu -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-family:'DM Serif Display',serif;font-size:18px">📊 Dashboard Tanara</div>
+      <button class="btn-refresh" onclick="loadDashboard()">↻ Refresh</button>
+    </div>
+
+    <!-- Outlet tabs -->
+    <div class="outlet-tabs" id="outlet-tabs"></div>
+
+    <!-- Filter periode -->
+    <div class="filter-row" style="margin-top:10px">
+      <button class="filter-btn active" onclick="setFilter('hari',this)">Hari ini</button>
+      <button class="filter-btn" onclick="setFilter('kemarin',this)">Kemarin</button>
+      <button class="filter-btn" onclick="setFilter('minggu',this)">Minggu ini</button>
+      <button class="filter-btn" onclick="setFilter('bulan',this)">Bulan ini</button>
+      <button class="filter-btn" onclick="setFilter('custom',this)">📅 Custom</button>
+    </div>
+    <div id="custom-date-row" style="display:none;margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input type="date" id="custom-start"/>
+      <span style="color:var(--muted);font-size:13px">s/d</span>
+      <input type="date" id="custom-end"/>
+      <button class="filter-btn" onclick="loadDashboard()" style="background:var(--brown);color:#fff;border-color:var(--brown)">Tampilkan</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stat-grid">
+    <div class="stat-card" style="border-left-color:var(--amber)">
+      <div class="stat-label">Total Omset</div>
+      <div class="stat-value" id="s-omset" style="color:var(--amber)">-</div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--blue)">
+      <div class="stat-label">Total Cash</div>
+      <div class="stat-value" id="s-cash" style="color:var(--blue)">-</div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--green)">
+      <div class="stat-label">Total EDC</div>
+      <div class="stat-value" id="s-edc" style="color:var(--green)">-</div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--orange)">
+      <div class="stat-label">Pemasukan Grab</div>
+      <div class="stat-value" id="s-grab" style="color:var(--orange)">-</div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--red)">
+      <div class="stat-label">Pengeluaran</div>
+      <div class="stat-value" id="s-peng" style="color:var(--red)">-</div>
+    </div>
+    <div class="stat-card" style="border-left-color:var(--muted)">
+      <div class="stat-label">Laporan Shift</div>
+      <div class="stat-value" id="s-count" style="color:var(--muted)">-</div>
+    </div>
+  </div>
+
+  <!-- Status Kas -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div class="card-title" style="margin-bottom:0">🏦 Status Kas Outlet (Terkini)</div>
+    </div>
+    <div id="kas-status-list"><div class="empty-state">Memuat...</div></div>
+  </div>
+
+  <!-- Laporan shift -->
+  <div class="card">
+    <div class="card-title">📋 Laporan Shift</div>
+    <div id="laporan-list"><div class="empty-state">Memuat...</div></div>
+  </div>
+
+  <!-- Setoran -->
+  <div class="card">
+    <div class="card-title">💰 Ringkasan Setoran</div>
+    <div id="setoran-list"><div class="empty-state">Memuat...</div></div>
+  </div>
+</main>
+
+<script type="module">
+  import { Auth, OutletManager } from './js/auth.js';
+  import { Storage } from './js/firebase.js';
+
+  const user = Auth.requireAuth('owner');
+  if (!user) throw new Error();
+  document.getElementById('user-badge').textContent = user.nama;
+  window.doLogout = () => Auth.logout();
+
+  let allOutlets = [];
+  let outletMap  = {};
+  let selectedOutlet = 'all';
+  let currentFilter = 'hari';
+
+  function nowWIB() { return new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Jakarta'})); }
+  function fmt(n) { return 'Rp '+Math.round(n).toLocaleString('id-ID'); }
+  function fmtShort(n) {
+    if (Math.abs(n) >= 1000000) return 'Rp '+(n/1000000).toFixed(1)+'jt';
+    if (Math.abs(n) >= 1000) return 'Rp '+(n/1000).toFixed(0)+'rb';
+    return 'Rp '+Math.round(n).toLocaleString('id-ID');
+  }
+
+  function getDateRange(filter) {
+    const now = nowWIB();
+    const today = now.toISOString().split('T')[0];
+    if (filter === 'hari') return [today, today];
+    if (filter === 'kemarin') {
+      const d = new Date(now); d.setDate(d.getDate()-1); const s = d.toISOString().split('T')[0]; return [s,s];
+    }
+    if (filter === 'minggu') {
+      const day = now.getDay(); const d = new Date(now); d.setDate(d.getDate()-day);
+      return [d.toISOString().split('T')[0], today];
+    }
+    if (filter === 'bulan') {
+      return [`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`, today];
+    }
+    if (filter === 'custom') {
+      const s = document.getElementById('custom-start').value;
+      const e = document.getElementById('custom-end').value;
+      return [s||today, e||today];
+    }
+    return [today, today];
+  }
+
+  window.setFilter = function(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const customRow = document.getElementById('custom-date-row');
+    customRow.style.display = filter === 'custom' ? 'flex' : 'none';
+    if (filter !== 'custom') loadDashboard();
+  };
+
+  // Load outlets dan buat tabs
+  async function initOutlets() {
+    allOutlets = await OutletManager.getAll();
+    outletMap  = Object.fromEntries(allOutlets.map(o=>[o.id,o.nama]));
+    const tabs = document.getElementById('outlet-tabs');
+    tabs.innerHTML = `<button class="outlet-tab active" onclick="selectOutlet('all',this)">Semua Outlet</button>`;
+    allOutlets.forEach(o => {
+      tabs.innerHTML += `<button class="outlet-tab" onclick="selectOutlet('${o.id}',this)">${o.nama}</button>`;
+    });
+    loadDashboard();
+    loadKasStatus();
+  }
+
+  window.selectOutlet = function(outlet, btn) {
+    selectedOutlet = outlet;
+    document.querySelectorAll('.outlet-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loadDashboard();
+  };
+
+  window.loadDashboard = async function() {
+    const [start, end] = getDateRange(currentFilter);
+    try {
+      const reports = await Storage.getReports(selectedOutlet, start, end);
+      const summary = Storage.getSummary(reports);
+
+      document.getElementById('s-omset').textContent  = fmtShort(summary.totalOmset);
+      document.getElementById('s-cash').textContent   = fmtShort(summary.totalCash);
+      document.getElementById('s-edc').textContent    = fmtShort(summary.totalEdc);
+      document.getElementById('s-grab').textContent   = fmtShort(summary.totalGrab);
+      document.getElementById('s-peng').textContent   = fmtShort(summary.totalPengeluaran);
+      document.getElementById('s-count').textContent  = summary.count + ' laporan';
+
+      renderLaporan(reports);
+      loadSetoran(start, end);
+    } catch(e){console.error(e);}
+  };
+
+  function renderLaporan(reports) {
+    const list = document.getElementById('laporan-list');
+    if (!reports.length){list.innerHTML='<div class="empty-state">Belum ada laporan di periode ini</div>';return;}
+    list.innerHTML = reports.slice(0,20).map(r => {
+      const badgeClass = r.shift==='Pagi'?'badge-pagi':r.shift==='Sore'?'badge-sore':'badge-middle';
+      const kasInfo = r.kasAkhirAktual>0
+        ? `<div style="font-size:11px;margin-top:3px;color:${r.selisihKas===0?'var(--green)':r.selisihKas>0?'var(--orange)':'var(--red)'}">
+            Selisih kas: ${r.selisihKas===0?'✅ Rp 0':(r.selisihKas>0?'⚠️ +':'🚨 ')+fmt(r.selisihKas||0)}
+           </div>` : '';
+      return `<div class="laporan-item">
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${outletMap[r.outlet]||r.outlet}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">
+            📅 ${r.tanggal.split('-').reverse().join('/')} · 
+            <span class="badge-shift ${badgeClass}">${r.shift}</span> · 
+            👤 ${(r.karyawan||[]).join(', ')}
+          </div>
+          ${kasInfo}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-family:'DM Serif Display',serif;font-size:16px;color:var(--amber)">${fmt(r.omset||0)}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:2px">omset</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function loadKasStatus() {
+    const list = document.getElementById('kas-status-list');
+    try {
+      const results = await Storage.getKasStatus(allOutlets);
+      list.innerHTML = results.map(r => {
+        if (r.status==='nodata') return `<div class="kas-card"><div><div class="kas-outlet">${r.outletNama}</div><div class="kas-meta">Belum ada laporan</div></div><div style="color:var(--muted);font-size:13px">—</div></div>`;
+        if (r.status==='error') return `<div class="kas-card error"><div><div class="kas-outlet">${r.outletNama}</div><div class="kas-meta">Error: ${r.errorMsg}</div></div></div>`;
+        const warnHtml = r.startingCashWarning ? `<div style="font-size:11px;color:var(--red);margin-top:3px">⚠️ Starting cash tidak sesuai</div>` : '';
+        return `<div class="kas-card ok">
+          <div>
+            <div class="kas-outlet">${r.outletNama}</div>
+            <div class="kas-meta">Laporan: ${r.tanggal?.split('-').reverse().join('/')} — Shift ${r.shift}</div>
+            <div class="kas-meta">Setoran: ${fmt(r.totalSetoran||0)}</div>
+            ${warnHtml}
+          </div>
+          <div>
+            <div class="kas-value">${fmt(r.sisaKas||0)}</div>
+            <div style="font-size:10px;color:var(--muted);text-align:right">Sisa kas</div>
+          </div>
+        </div>`;
+      }).join('');
+    } catch(e){list.innerHTML='<div class="empty-state">Gagal memuat status kas</div>';}
+  }
+
+  async function loadSetoran(start, end) {
+    const list = document.getElementById('setoran-list');
+    try {
+      const setorans = await Storage.getSetoranByRange(selectedOutlet, start, end);
+      if (!setorans.length){list.innerHTML='<div class="empty-state">Belum ada setoran di periode ini</div>';return;}
+      const total = setorans.reduce((s,r)=>s+(r.nominal||0),0);
+      list.innerHTML = `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:8px">
+        <span style="font-size:12px;font-weight:600;color:var(--muted)">TOTAL SETORAN</span>
+        <span style="font-family:'DM Serif Display',serif;font-size:18px;color:var(--brown)">${fmt(total)}</span>
+      </div>` +
+      setorans.slice(0,15).map(s=>`
+        <div class="setoran-item">
+          <div>
+            <div style="font-weight:500">${outletMap[s.outlet]||s.outlet}</div>
+            <div style="font-size:11px;color:var(--muted)">${s.tanggal.split('-').reverse().join('/')} · ${s.inputByNama||s.inputBy||'-'}</div>
+            ${s.catatan?`<div style="font-size:11px;color:var(--muted);font-style:italic">${s.catatan}</div>`:''}
+          </div>
+          <div style="font-family:'DM Serif Display',serif;font-size:16px;color:var(--blue)">${fmt(s.nominal)}</div>
+        </div>`).join('');
+    } catch(e){list.innerHTML='<div class="empty-state">Gagal memuat setoran</div>';}
+  }
+
+  // Init
+  initOutlets();
+</script>
+</body>
+</html>
